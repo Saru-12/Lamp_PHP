@@ -1,0 +1,87 @@
+- name: Configure LAMP Stack
+  hosts: lamp
+  become: yes
+  tasks:
+
+    - name: Install required packages
+      yum:
+        name:
+          - nginx
+          - php
+          - php-fpm
+          - php-mysqlnd
+          - mariadb-server
+        state: present
+
+    - name: Start and enable services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - nginx
+        - php-fpm
+        - mariadb
+
+    - name: Secure MySQL installation
+      mysql_user:
+        name: root
+        password: "password"
+        login_unix_socket: /var/lib/mysql/mysql.sock
+        state: present
+
+    - name: Create MySQL database
+      mysql_db:
+        name: testdb
+        state: present
+
+    - name: Create MySQL user
+      mysql_user:
+        name: user
+        password: "password"
+        priv: "testdb.*:ALL"
+        host: "%"
+        state: present
+
+    - name: Configure Nginx for PHP
+      copy:
+        dest: /etc/nginx/conf.d/default.conf
+        content: |
+          server {
+              listen 80;
+              server_name _;
+              root /var/www/html;
+              index index.php index.html;
+              location / {
+                  try_files $uri $uri/ =404;
+              }
+              location ~ \.php$ {
+                  include fastcgi_params;
+                  fastcgi_pass unix:/run/php-fpm/www.sock;
+                  fastcgi_index index.php;
+                  fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+              }
+          }
+      notify: restart nginx
+
+    - name: Deploy PHP application
+      copy:
+        dest: /var/www/html/index.php
+        content: |
+          <?php
+          $conn = new mysqli("localhost", "user", "password", "testdb");
+          if ($conn->connect_error) {
+              die("Connection failed: " . $conn->connect_error);
+          }
+          echo "Hello, World! Your MySQL connection is successful.";
+          $conn->close();
+          ?>
+        owner: nginx
+        group: nginx
+        mode: "0644"
+
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
