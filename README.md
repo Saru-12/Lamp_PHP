@@ -1,9 +1,5 @@
-Create By **Sarthak**
-Sure! Here's an updated **README.md** with the additional files you've mentioned under the **Ansible** and **Terraform** sections.
-
----
-
 # LAMP Stack Deployment with Docker, Kubernetes, Terraform, and Ansible
+Create By **Sarthak**
 
 This project automates the deployment and management of a **LAMP** (Linux, Apache, MySQL, PHP) stack using **Docker**, **Kubernetes**, **Terraform**, and **Ansible**. It also integrates **Prometheus** and **Grafana** for monitoring and implements **automated backups** for MySQL.
 
