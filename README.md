@@ -1,208 +1,177 @@
-Here's a detailed README file for your project:
+---
+
+# LAMP Stack Deployment with Docker, Kubernetes, Terraform, and Ansible
+
+This project demonstrates the deployment and automation of a **LAMP** (Linux, Apache, MySQL, PHP) stack using various tools and technologies, including **Docker**, **Kubernetes**, **Terraform**, and **Ansible**. Additionally, it integrates **Prometheus** and **Grafana** for monitoring and implements automated MySQL backups for data safety.
 
 ---
 
-# LAMP Stack Deployment and Automation
-
-This project demonstrates the deployment and automation of a LAMP (Linux, Apache, MySQL, PHP) stack using Docker, Kubernetes, Terraform, and Ansible. It focuses on building, configuring, and scaling a LAMP stack across multiple platforms, ensuring high availability, and adding monitoring with Prometheus/Grafana.
-
 ## Table of Contents
 1. [Project Overview](#project-overview)
-2. [Prerequisites](#prerequisites)
-3. [Architecture](#architecture)
-4. [Setup and Deployment](#setup-and-deployment)
-    - [Docker Setup](#docker-setup)
-    - [Kubernetes Setup](#kubernetes-setup)
-    - [Terraform Setup](#terraform-setup)
-    - [Ansible Setup](#ansible-setup)
-5. [Scaling and High Availability](#scaling-and-high-availability)
-6. [Monitoring](#monitoring)
-7. [Backup Strategy](#backup-strategy)
-8. [Troubleshooting](#troubleshooting)
-9. [License](#license)
+2. [Technologies Used](#technologies-used)
+3. [Setup and Installation](#setup-and-installation)
+    - [Docker LAMP Stack](#docker-lamp-stack)
+    - [Kubernetes LAMP Stack](#kubernetes-lamp-stack)
+    - [Terraform & Ansible Setup](#terraform--ansible-setup)
+4. [Monitoring with Prometheus and Grafana](#monitoring-with-prometheus-and-grafana)
+    - [Prometheus Setup](#prometheus-setup)
+    - [Grafana Setup](#grafana-setup)
+    - [Prometheus-Grafana Integration](#prometheus-grafana-integration)
+5. [Backup Strategy](#backup-strategy)
+    - [MySQL Backup Script](#mysql-backup-script)
+    - [Cron Job for Automated Backups](#cron-job-for-automated-backups)
+    - [Backup Storage](#backup-storage)
+    - [Restoring Backups](#restoring-backups)
+6. [Conclusion](#conclusion)
 
 ---
 
 ## Project Overview
 
-This project automates the deployment of a LAMP stack in the following environments:
-- **Docker**: Builds a LAMP stack using Docker Compose.
-- **Kubernetes**: Deploys the LAMP stack on a Kubernetes cluster using Minikube.
-- **Terraform**: Provisions AWS EC2 instances.
-- **Ansible**: Configures the LAMP stack (Nginx, MySQL, PHP) on the EC2 instance.
+This project automates the deployment of a **LAMP stack** using **Docker** and **Kubernetes**, and provisions infrastructure with **Terraform** and **Ansible**. The setup is enhanced with **Prometheus** and **Grafana** for monitoring and **automated backups** to ensure high availability, performance, and data safety.
 
-The project ensures the following:
-- High availability with scaling.
-- Rolling updates for zero-downtime deployments.
-- Automated MySQL backups using cron jobs.
-- Monitoring with Prometheus and Grafana.
+### Core Components:
+- **Docker**: Building and running a LAMP stack as Docker containers.
+- **Kubernetes**: Deploying the LAMP stack within a Kubernetes cluster (Minikube).
+- **Terraform & Ansible**: Provisioning AWS EC2 instances and configuring the LAMP stack.
+- **Prometheus & Grafana**: Monitoring performance metrics of MySQL and Nginx.
+- **MySQL Backup**: Automating database backups using cron jobs.
 
 ---
 
-## Prerequisites
-
-Before you begin, ensure that you have the following installed:
-
-- **Docker**: For building the LAMP stack container.
-- **Minikube**: For setting up a local Kubernetes cluster.
-- **Kubectl**: For interacting with the Kubernetes cluster.
-- **Terraform**: For provisioning AWS resources.
-- **Ansible**: For configuring the LAMP stack on the EC2 instance.
-- **Prometheus/Grafana**: For monitoring the services.
-- **WSL** (Windows Subsystem for Linux): For a Linux environment on Windows.
+## Technologies Used
+- **Docker** for containerizing services.
+- **Kubernetes (Minikube)** for orchestrating the containers.
+- **Terraform** for provisioning cloud resources (AWS EC2).
+- **Ansible** for configuring the LAMP stack.
+- **Prometheus** for monitoring the LAMP stack.
+- **Grafana** for visualizing the metrics.
+- **AWS CLI** for cloud storage and backup management.
 
 ---
 
-## Architecture
+## Setup and Installation
 
-The architecture for the LAMP stack includes:
-
-1. **Docker**:
-   - A lightweight container that runs Nginx, PHP-FPM, and connects to MySQL.
-   
-2. **Kubernetes**:
-   - A **StatefulSet** for MySQL with persistent storage.
-   - Horizontal Pod Autoscaling (HPA) for scaling.
-   - ConfigMaps and Secrets for configuration and sensitive data management.
-   - High availability via replica sets and rolling updates.
-
-3. **Terraform**:
-   - EC2 instance setup with security groups and VPC.
-   
-4. **Ansible**:
-   - Installs Nginx, MySQL, and PHP, and configures the LAMP stack.
-
-5. **Prometheus/Grafana**:
-   - Monitors system metrics and services (MySQL, Nginx).
-
----
-
-## Setup and Deployment
-
-### Docker Setup
-
-1. **Build the Docker Image**:
-   - Navigate to the `docker` directory.
-   - Run the following command:
+### Docker LAMP Stack
+1. **Build and Run LAMP Stack** using Docker:
+   - The Dockerfile for each component (Nginx, PHP-FPM, MySQL) is available in the `docker/` folder.
+   - Build images and start containers:
      ```bash
-     docker-compose up -d
+     docker-compose up --build
      ```
 
-2. **Verify the Stack**:
-   - Check the running containers:
-     ```bash
-     docker ps
-     ```
+### Kubernetes LAMP Stack
+1. **Deploy the LAMP stack in Kubernetes** using **Minikube**:
+   - Ensure **Minikube** is running on your system.
+   - Deploy Nginx, PHP-FPM, and MySQL as services and StatefulSets in your Kubernetes cluster using the appropriate YAML files located in the `k8s/` folder.
 
-3. **Access the App**:
-   - Open your browser and go to `http://localhost`.
+2. **Ensure High Availability** for MySQL using **StatefulSets** with PersistentVolume and PersistentVolumeClaim.
 
-### Kubernetes Setup
+3. **Set up Horizontal Pod Autoscaling** and configure **readiness** and **liveness probes** for Nginx and MySQL to ensure reliability.
 
-1. **Start Minikube**:
-   - Launch Minikube:
-     ```bash
-     minikube start
-     ```
+4. **Scaling and Rolling Updates**: 
+   - Implement horizontal pod autoscaling for the Nginx and MySQL services.
+   - Use rolling updates for zero-downtime deployments.
 
-2. **Apply the Kubernetes YAML Files**:
-   - Apply the Kubernetes configurations (StatefulSet, Services, ConfigMaps, Secrets, etc.):
-     ```bash
-     kubectl apply -f kubernetes/
-     ```
-
-3. **Verify Pods**:
-   - Check the deployed pods:
-     ```bash
-     kubectl get pods
-     ```
-
-4. **Access the Application**:
-   - Expose the Nginx service using Minikube's tunnel:
-     ```bash
-     minikube tunnel
-     ```
-
-   - Access the app via the Minikube IP.
-
-### Terraform Setup
-
+### Terraform & Ansible Setup
 1. **Provision EC2 Instance**:
-   - Navigate to the `terraform` directory.
-   - Initialize Terraform:
-     ```bash
-     terraform init
-     ```
+   - Use **Terraform** to provision an EC2 instance (LAMP-server2).
+   - Configure a **Security Group**, **VPC**, and **key pair** for SSH access.
+   - The Terraform configuration is located in the `terraform/` folder.
 
-2. **Apply Configuration**:
-   - Apply the configuration to provision the EC2 instance:
-     ```bash
-     terraform apply
-     ```
-
-3. **SSH into EC2 Instance**:
-   - SSH into the instance using the key `Sarthak`:
-     ```bash
-     ssh -i /path/to/Sarthak.pem ec2-user@54.82.1.154
-     ```
-
-### Ansible Setup
-
-1. **Configure EC2**:
-   - Run Ansible to configure Nginx, PHP, and MySQL:
-     ```bash
-     ansible-playbook -i inventory/hosts playbook.yml
-     ```
+2. **Configure LAMP Stack**:
+   - Use **Ansible** to automate the installation of **Nginx**, **MySQL**, and **PHP** on the provisioned EC2 instance.
 
 ---
 
-## Scaling and High Availability
+## Monitoring with Prometheus and Grafana
 
-- The Kubernetes deployment uses **StatefulSet** for MySQL, ensuring persistent data storage.
-- Horizontal Pod Autoscaling (HPA) ensures that the application scales based on load.
-- Rolling updates are configured to ensure zero-downtime deployment.
+### Prometheus Setup
+1. **Install Prometheus in Kubernetes**:
+   - Prometheus will scrape metrics from MySQL and Nginx services every 15 seconds.
+   - Create a `prometheus.yml` file to configure the scraping targets.
+   - Deploy Prometheus in Kubernetes using `prometheus-deployment.yaml`.
 
----
+2. **Expose Prometheus for Web Access**:
+   - Expose the Prometheus service on port 9090 for easy access via:
+     ```bash
+     kubectl port-forward svc/prometheus 9090:9090
+     ```
 
-## Monitoring
+3. **Verify Prometheus Deployment**: Access Prometheus UI via `http://localhost:9090`.
 
-- Prometheus and Grafana are deployed for monitoring:
-  - **Prometheus** collects metrics from the Kubernetes cluster, MySQL, and Nginx.
-  - **Grafana** visualizes the data and provides dashboards for monitoring.
+### Grafana Setup
+1. **Install Grafana in Kubernetes**:
+   - Deploy Grafana using `grafana-deployment.yaml`.
+   - Expose Grafana service on port 80 for access via the browser.
+   - Access Grafana at `http://localhost:3000` (default username/password: `admin` / `admin`).
+
+2. **Configure Prometheus as a Data Source** in Grafana:
+   - Set the data source URL as `http://prometheus-service:9090`.
+   - Import pre-built dashboards for MySQL and Nginx.
+
+3. **Visualize Metrics**:
+   - Use Grafana to visualize MySQL database performance, Nginx request rates, CPU usage, memory, etc.
+
+### Prometheus-Grafana Integration
+- Integrate Grafana with Prometheus to visualize key metrics from your LAMP stack (e.g., database performance, server health, etc.).
 
 ---
 
 ## Backup Strategy
 
-- **MySQL backups** are automated using cron jobs that back up the database at regular intervals. The backups are stored in an S3 bucket for persistence.
-
----
-
-## Troubleshooting
-
-1. **Docker Issues**:
-   - Ensure that Docker is running and that there are no conflicting containers.
-   
-2. **Kubernetes Issues**:
-   - Verify that Minikube is running:
+### MySQL Backup Script
+1. **Backup Script (`backup.sh`)**:
+   - This script performs a dump of your MySQL database and stores it locally or uploads it to AWS S3.
+   - Example script:
      ```bash
-     minikube status
+     #!/bin/bash
+     BACKUP_DIR="/path/to/backups"
+     DB_NAME="your_database_name"
+     DB_USER="root"
+     DB_PASSWORD="your_password"
+     TIMESTAMP=$(date +"%F_%T")
+     BACKUP_FILE="$BACKUP_DIR/$DB_NAME-$TIMESTAMP.sql"
+
+     # Perform MySQL dump
+     mysqldump -u$DB_USER -p$DB_PASSWORD $DB_NAME > $BACKUP_FILE
+
+     # Optionally upload to S3
+     aws s3 cp $BACKUP_FILE s3://your-s3-bucket/
      ```
-   - Check pod logs:
+
+### Cron Job for Automated Backups
+1. **Schedule Automated Backups** using cron:
+   - Add a cron job to run the backup script daily at 2:00 AM:
      ```bash
-     kubectl logs <pod-name>
+     crontab -e
+     ```
+     Add:
+     ```bash
+     0 2 * * * /path/to/backup.sh
      ```
 
-3. **EC2 Issues**:
-   - Ensure the correct security group and VPC configurations are in place.
-   - SSH into the instance and check the application logs for errors.
+### Backup Storage
+1. **Store backups on AWS S3** for durability and easy access:
+   - Ensure the AWS CLI is configured for S3 access.
+   - Optionally, set a retention policy to delete backups older than a certain period (e.g., 30 days).
+
+### Restoring Backups
+To restore a backup from a `.sql` file:
+```bash
+mysql -u root -p your_password your_database_name < /path/to/backup.sql
+```
+Ensure data integrity after restoring the backup.
 
 ---
 
-## License
+## Conclusion
 
-This project is licensed under the MIT License.
+This project demonstrates a full LAMP stack deployment with Docker and Kubernetes. It incorporates the following:
+- **Prometheus** and **Grafana** for real-time monitoring.
+- **Automated backups** of MySQL to ensure data security.
+- **Terraform** and **Ansible** for provisioning and configuration management.
+- **High Availability** and **scalability** using Kubernetes features like StatefulSets and Horizontal Pod Autoscaling.
 
----
 
-This README provides an overview of how to set up and deploy a LAMP stack with high availability, scaling, monitoring, and automated backups.
+
